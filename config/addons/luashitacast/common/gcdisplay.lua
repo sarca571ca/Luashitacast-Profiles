@@ -5,6 +5,14 @@ local Toggles = {};
 local Cycles = {};
 local Def = 0;
 local Attk = 0;
+local Fire = 0;
+local Water = 0;
+local Wind = 0;
+local Earth = 0;
+local Lightning = 0;
+local Ice = 0;
+local Light = 0;
+local Dark = 0;
 local MainLV = 0;
 local SubLV = 0;
 local Main = 'FOO';
@@ -12,14 +20,14 @@ local Sub = 'BAR';
 
 local fontSettings = T{
 	visible = true,
-	font_family = 'Arial',
+	font_family = 'Consolas',
 	font_height = 12,
 	color = 0xFFFFFFFF,
 	position_x = 300,
-	position_y = 0,
+	position_y = 1000,
 	background = T{
 		visible = true,
-		color = 0xFF000000,
+		color = 0xFF303446, -- Need to compare the transparency of my other addons to set the BG correctly
 	}
 };
 
@@ -67,7 +75,15 @@ function gcdisplay.Update()
 	local SID = player:GetSubJob();
 	Def = player:GetDefense();
 	Attk = player:GetAttack();
-	MainLV =player:GetMainJobLevel();
+	Fire = player:GetResist(0);
+	Water = player:GetResist(1);
+	Wind = player:GetResist(2);
+	Earth = player:GetResist(3);
+	Lightning = player:GetResist(4);
+	Ice = player:GetResist(5);
+	Light = player:GetResist(6);
+	Dark = player:GetResist(7);
+	MainLV = player:GetMainJobLevel();
 	SubLV = player:GetSubJobLevel();
 	Main = AshitaCore:GetResourceManager():GetString("jobs.names_abbr", MID);
 	Sub = AshitaCore:GetResourceManager():GetString("jobs.names_abbr", SID);
@@ -112,21 +128,29 @@ function gcdisplay.Unload()
 end
 
 function gcdisplay.Initialize()
+	-- Need to test out changing the color of the element text to easily identify the element
+	-- Maybe even just coloring the number to shorten the box some
+	-- Can add a key for toggles on line 1
 	gcdisplay.Update();
 	gcdisplay.FontObject = fonts.new(fontSettings);	
 	ashita.events.register('d3d_present', 'gcdisplay_present_cb', function ()
-		local display = MainLV .. Main .. '/' .. SubLV .. Sub ..'   Attk:' .. Attk .. '   Def:' .. Def;
+		local line1 = MainLV .. Main .. '   Attk:' .. Attk .. '   Fire:' .. Fire .. '   Wind:' .. Wind  .. '   Ltng:' .. Lightning  .. '  Light:' .. Light;
+		local line2 = '\n' .. SubLV .. Sub .. '    Def:' .. Def .. '  Water:' .. Water .. '  Earth:' .. Earth  .. '    Ice:' .. Ice  .. '   Dark:' .. Dark;
 		for k, v in pairs(Toggles) do
-			display = display .. '   ';
+			line1 = line1 .. '   ';
 			if (v == true) then
-				display = display .. '|cFF00FF00|' .. k .. '|r';
+				line1 = line1 .. '|cFF00FF00|' .. k .. '|r';
 			else
-				display = display .. '|cFFFF0000|' .. k .. '|r';
+				line1 = line1 .. '|cFFFF0000|' .. k .. '|r';
 			end
 		end
 		for key, value in pairs(Cycles) do
-			display = display .. '  ' .. key .. ': ' .. '|cFF00FF00|' .. value.Array[value.Index] .. '|r';
+			line2 = line2 .. '  ' .. key .. ': ' .. '|cFF00FF00|' .. value.Array[value.Index] .. '|r';
 		end
+		local function padNumber(number)
+			return string.format("%4d", number)
+		end
+		local display = line1:gsub("%d+", padNumber) .. line2:gsub("%d+", padNumber)
 		gcdisplay.FontObject.text = display;
 	end);
 end

@@ -47,7 +47,10 @@ gcinclude.sets = T{
     },
 	Fishing = { -- this set is meant as a default set for fishing, equip using /fishset
 		Range = 'Halcyon Rod',
-		Ring2 = 'Pelican Ring',
+		Body = 'Fisherman\'s tunica',
+		Hands = 'Fisherman\'s golves',
+		Legs = 'Fisherman\'s hose',
+		Feet = 'Fisherman\'s boots',
     },
 };
 gcinclude.settings = {
@@ -73,7 +76,7 @@ in each individual job lua file. Unless you know what you're doing then it is be
 ]]
 gcdisplay = gFunc.LoadFile('common\\gcdisplay.lua');
 
-gcinclude.AliasList = T{'gcmessages','wsdistance','setcycle','dt','th','kite','meleeset','gcdrain','gcaspir','nukeset','burst','weapon','elecycle','helix','weather','nuke','death','fight','sir','tankset','proc','cj','pupmode','tpgun','cormsg','forcestring','siphon','warpring','telering','rrset','craftset','zeniset','fishset'};
+gcinclude.AliasList = T{'gcmessages','wsdistance','setcycle','dt', 'eva', 'th','meleeset','gcdrain','gcaspir','nukeset','burst','weapon','elecycle','helix','weather','nuke','death','fight','sir','tankset', 'eleres', 'proc','cj','pupmode','tpgun','cormsg','forcestring','siphon','warpring','telering','rrset','craftset','zeniset','fishset'};
 gcinclude.Towns = T{'Tavnazian Safehold','Al Zahbi','Aht Urhgan Whitegate','Nashmau','Southern San d\'Oria [S]','Bastok Markets [S]','Windurst Waters [S]','San d\'Oria-Jeuno Airship','Bastok-Jeuno Airship','Windurst-Jeuno Airship','Kazham-Jeuno Airship','Southern San d\'Oria','Northern San d\'Oria','Port San d\'Oria','Chateau d\'Oraguille','Bastok Mines','Bastok Markets','Port Bastok','Metalworks','Windurst Waters','Windurst Walls','Port Windurst','Windurst Woods','Heavens Tower','Ru\'Lude Gardens','Upper Jeuno','Lower Jeuno','Port Jeuno','Rabao','Selbina','Mhaura','Kazham','Norg','Mog Garden','Celennia Memorial Library','Western Adoulin','Eastern Adoulin'};
 gcinclude.LockingRings = T{'Echad Ring', 'Trizek Ring', 'Endorsement Ring', 'Capacity Ring', 'Warp Ring','Facility Ring','Dim. Ring (Dem)','Dim. Ring (Mea)','Dim. Ring (Holla)'};
 gcinclude.DistanceWS = T{'Flaming Arrow','Piercing Arrow','Dulling Arrow','Sidewinder','Blast Arrow','Arching Arrow','Empyreal Arrow','Refulgent Arrow','Apex Arrow','Namas Arrow','Jishnu\'s Randiance','Hot Shot','Split Shot','Sniper Shot','Slug Shot','Blast Shot','Heavy Shot','Detonator','Numbing Shot','Last Stand','Coronach','Wildfire','Trueflight','Leaden Salute','Myrkr','Dagan','Moonlight','Starlight'};
@@ -128,9 +131,8 @@ end
 function gcinclude.SetVariables()
 	local player = gData.GetPlayer();
 
-	gcdisplay.CreateToggle('DTset', false);
-	gcdisplay.CreateToggle('Kite', false);
-	gcdisplay.CreateToggle('TH', false);
+	gcdisplay.CreateToggle('DT', false);
+	gcdisplay.CreateToggle('EVA', false);
 	gcdisplay.CreateCycle('MeleeSet', {[1] = 'Default', [2] = 'Hybrid', [3] = 'Acc'});
 	if (player.MainJob == 'RDM') or (player.MainJob == 'BLM') or (player.MainJob == 'SCH') or (player.MainJob == 'GEO') then
 		gcdisplay.CreateToggle('Burst', true);
@@ -146,12 +148,11 @@ function gcinclude.SetVariables()
 	if (player.MainJob == 'RDM') or (player.MainJob == 'BRD') or (player.MainJob == 'GEO') or (player.MainJob == 'WHM') then
 		gcdisplay.CreateToggle('Fight', false);
 	end
-	if (player.MainJob == 'PLD') or (player.MainJob == 'RUN') then
-		gcdisplay.CreateToggle('SIR', true);
-		gcdisplay.CreateCycle('TankSet', {[1] = 'Main', [2] = 'MEVA', [3] = 'None'});
-	end
-	if (player.MainJob == 'SAM') or (player.MainJob == 'NIN') then
-		gcdisplay.CreateToggle('PROC', false);
+	if (player.MainJob == 'PLD') or (player.MainJob == 'RUN') or (player.MainJob == 'NIN') then
+		gcdisplay.CreateCycle('TankSet', {[1] = 'Main', [2] = 'EleRes', [3] = 'None'});
+		if gcdisplay.GetCycle('TankSet') == 'EleRes' then
+			gcdisplay.CreateCycle('EleRes', {[1] = 'Fire', [2] = 'Water', [3] = 'Wind', [4] = 'Earth', [5] = 'Lightning', [6] = 'Ice', [7] = 'Light', [8] = 'Dark'});
+		end
 	end
 	if (player.MainJob == 'PUP') then
 		gcdisplay.CreateCycle('PupMode', {[1] = 'Tank', [2] = 'Melee', [3] = 'Ranger', [4] = 'Mage'});
@@ -164,6 +165,9 @@ function gcinclude.SetVariables()
 	end
 	if (player.MainJob == 'BLU') then
 		gcdisplay.CreateToggle('CJmode', false);
+	end
+	if (player.MainJob == 'THF') then
+		gcdisplay.CreateToggle('TH', false);
 	end
 end
 
@@ -193,9 +197,9 @@ function gcinclude.HandleCommands(args)
 			print(chat.header('GCinclude'):append(chat.message('Can change WS distance allowed by using /wsdistance ##')));
 		end
 	elseif (args[1] == 'dt') then
-		gcdisplay.AdvanceToggle('DTset');
+		gcdisplay.AdvanceToggle('DT');
 		toggle = 'DT Set';
-		status = gcdisplay.GetToggle('DTset');
+		status = gcdisplay.GetToggle('DT');
     elseif (args[1] == 'meleeset') then
 		gcdisplay.AdvanceCycle('MeleeSet');
 		toggle = 'Melee Set';
@@ -205,14 +209,10 @@ function gcinclude.HandleCommands(args)
 			toggle = args[2];
 			status = gcdisplay.GetCycle(args[2]);
 		end
-	elseif (args[1] == 'kite') then
-		gcdisplay.AdvanceToggle('Kite');
-		toggle = 'Kite Set';
-		status = gcdisplay.GetToggle('Kite');
-	elseif (args[1] == 'th') then
-		gcdisplay.AdvanceToggle('TH');
-		toggle = 'TH Set';
-		status = gcdisplay.GetToggle('TH');
+	elseif (args[1] == 'eva') then
+		gcdisplay.AdvanceToggle('EVA');
+		toggle = 'EVA Set';
+		status = gcdisplay.GetToggle('EVA');
 	elseif (args[1] == 'gcaspir') then
 		gcinclude.DoAspir();
 	elseif (args[1] == 'gcdrain') then
@@ -294,30 +294,25 @@ function gcinclude.HandleCommands(args)
 			end
 		end
 	end
-	if (player.MainJob == 'PLD') or (player.MainJob == 'RUN') then
-		if (args[1] == 'sir') then
-			gcdisplay.AdvanceToggle('SIR');
-			toggle = 'Spell Interupt Set';
-			status = gcdisplay.GetToggle('SIR');
-		end
+	if (player.MainJob == 'PLD') or (player.MainJob == 'RUN') or (player.MainJob == 'NIN') then
 		if (args[1] == 'tankset') then
 			gcdisplay.AdvanceCycle('TankSet');
 			toggle = 'Tank Gear Set';
 			status = gcdisplay.GetCycle('TankSet');
+			if (args[1] == 'eleres') and status == 'EleRes' then
+				gcdisplay.AdvanceCycle('EleRes');
+				toggle = 'Elemental Resist Set';
+				status = gcdisplay.GetCycle('EleRes');
+			else
+				print(chat.header('GCinclude'):append(chat.message('Can only be used when "/tankset" is toggled on.')));
+			end
 		end
 	end
-	if (player.MainJob == 'SAM') or (player.MainJob == 'NIN') then
-		if (args[1] == 'proc') then
-			gcdisplay.AdvanceToggle('PROC');
-			toggle = 'Low Damage PROC Set';
-			status = gcdisplay.GetToggle('PROC');
-			if (player.MainJob == 'NIN') then
-				if gcdisplay.GetToggle('PROC') == true then
-					AshitaCore:GetChatManager():QueueCommand(-1, '/lac disable ammo');
-				else
-					AshitaCore:GetChatManager():QueueCommand(-1, '/lac enable ammo');
-				end
-			end
+	if (player.MainJob == 'THF') then
+		if (args[1] == 'th') then
+			gcdisplay.AdvanceToggle('TH');
+			toggle = 'TH Set';
+			status = gcdisplay.GetToggle('TH');
 		end
 	end
 	if (player.MainJob == 'PUP') then
@@ -466,13 +461,13 @@ function gcinclude.CheckSpellBailout()
 end
 
 function gcinclude.DoWarpRing()
-	AshitaCore:GetChatManager():QueueCommand(1, '/lac equip ring2 "Warp Ring"');
+	AshitaCore:GetChatManager():QueueCommand(3, '/lac equip main "Warp cudgel"');
 
 	local function usering()
 		local function forceidleset()
 			AshitaCore:GetChatManager():QueueCommand(1, '/lac set Idle');
 		end
-		AshitaCore:GetChatManager():QueueCommand(1, '/item "Warp Ring" <me>');
+		AshitaCore:GetChatManager():QueueCommand(1, '/item "Warp cudgel" <me>');
 		forceidleset:once(8);
 	end
 	
