@@ -303,8 +303,6 @@ function gcinclude.HandleCommands(args)
 				gcdisplay.AdvanceCycle('EleRes');
 				toggle = 'Elemental Resist Set';
 				status = gcdisplay.GetCycle('EleRes');
-			else
-				print(chat.header('GCinclude'):append(chat.message('Can only be used when "/tankset" is toggled on.')));
 			end
 		end
 	end
